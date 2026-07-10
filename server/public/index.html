@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>BEAT THE GLOBETROTTER</title>
+<style>
+  @font-face {
+    font-family: 'Press Start 2P';
+    src: url('/PressStart2P.ttf') format('truetype');
+    font-display: swap;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Press Start 2P', monospace;
+    background: linear-gradient(180deg, #0a0a1a 0%, #1a1035 100%);
+    color: #e8e8ff;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    min-height: 100%;
+    text-align: center;
+  }
+  h1 { font-size: 13px; color: #ffd24a; text-shadow: 0 0 12px rgba(255,210,74,.5); line-height: 1.7; margin-bottom: 4px; }
+  .screen { display: none; width: 100%; max-width: 420px; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+  .spacer { flex: 1; }
+  .small { font-size: 8px; color: #8888bb; line-height: 1.8; }
+  .bigname { font-size: 14px; color: #4ae3ff; text-shadow: 0 0 10px rgba(74,227,255,.6); word-break: break-all; }
+
+  input[type=text] {
+    font-family: inherit; font-size: 14px; text-transform: uppercase;
+    background: #141430; color: #4ae3ff; border: 3px solid #4ae3ff;
+    padding: 14px; width: 100%; text-align: center; border-radius: 6px; outline: none;
+  }
+  input[type=text]::placeholder { color: #3a3a6a; }
+  button {
+    font-family: inherit; font-size: 12px; cursor: pointer;
+    border: 3px solid; border-radius: 8px; padding: 16px 12px; width: 100%;
+    background: #141430; color: #e8e8ff; line-height: 1.5;
+    transition: transform .06s;
+  }
+  button:active { transform: scale(.97); }
+  .btn-go { border-color: #ffd24a; color: #ffd24a; margin-top: 14px; box-shadow: 0 0 14px rgba(255,210,74,.25); }
+  .opt { margin-top: 12px; text-align: left; display: flex; gap: 10px; align-items: center; }
+  .opt .tag { color: #ffd24a; flex: 0 0 auto; }
+  .opt.picked { background: #4ae3ff; color: #0a0a1a; border-color: #4ae3ff; }
+  .opt.picked .tag { color: #0a0a1a; }
+  .opt:disabled { opacity: .45; }
+  .opt.picked:disabled { opacity: 1; }
+
+  .qtext { font-size: 11px; line-height: 1.9; margin: 14px 0; }
+  .badge { font-size: 8px; color: #ff7ad9; letter-spacing: 1px; margin-top: 16px; }
+  #timer { font-size: 26px; color: #ffd24a; margin-top: 8px; }
+  #timer.hurry { color: #ff5a5a; animation: blink .5s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+
+  .result-big { font-size: 22px; margin: 22px 0 10px; }
+  .right { color: #58ff9b; text-shadow: 0 0 14px rgba(88,255,155,.6); }
+  .wrong { color: #ff5a5a; text-shadow: 0 0 14px rgba(255,90,90,.6); }
+  .fact { font-size: 9px; color: #b8b8e8; line-height: 2; margin-top: 10px; }
+  .lb { margin-top: 16px; font-size: 10px; line-height: 2.4; text-align: left; }
+  .lb .me { color: #4ae3ff; }
+  .err { color: #ff5a5a; font-size: 9px; margin-top: 12px; min-height: 2em; line-height: 1.8; }
+  .pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .55; } }
+</style>
+</head>
+<body>
+  <h1>BEAT THE<br>GLOBETROTTER</h1>
+
+  <!-- JOIN -->
+  <div class="screen active" id="s-join">
+    <p class="small" style="margin:18px 0 8px">ENTER YOUR NAME</p>
+    <input type="text" id="name" maxlength="16" placeholder="YOUR NAME" autocomplete="off">
+    <div id="roomrow" style="display:none">
+      <p class="small" style="margin:18px 0 8px">ROOM CODE</p>
+      <input type="text" id="room" maxlength="4" placeholder="ABCD" autocomplete="off">
+    </div>
+    <button class="btn-go" id="btn-join">INSERT COIN &#9656; JOIN</button>
+    <div class="err" id="join-err"></div>
+  </div>
+
+  <!-- LOBBY -->
+  <div class="screen" id="s-lobby">
+    <p class="badge pulse" style="margin-top:40px">YOU'RE IN!</p>
+    <p class="bigname" style="margin-top:16px" id="lobby-name"></p>
+    <div class="spacer"></div>
+    <p class="small pulse">WAITING FOR THE HOST<br>TO START THE GAME...</p>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- WAIT (between questions / during VS) -->
+  <div class="screen" id="s-wait">
+    <div class="spacer"></div>
+    <p class="small pulse" id="wait-msg">GET READY...</p>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="s-question">
+    <p class="badge" id="q-progress"></p>
+    <div id="timer"></div>
+    <p class="qtext" id="q-text"></p>
+    <div id="q-options"></div>
+    <div id="q-open" style="display:none">
+      <input type="text" id="open-answer" maxlength="60" placeholder="TYPE ANSWER" autocomplete="off">
+      <button class="btn-go" id="btn-submit-open">LOCK IT IN</button>
+    </div>
+    <p class="small" id="q-locked" style="display:none;margin-top:18px">ANSWER LOCKED &#10003;</p>
+  </div>
+
+  <!-- REVEAL -->
+  <div class="screen" id="s-reveal">
+    <div class="result-big" id="r-verdict"></div>
+    <p class="qtext" id="r-answer"></p>
+    <p class="fact" id="r-fact"></p>
+    <div class="spacer"></div>
+    <p class="small pulse">WAITING FOR NEXT QUESTION...</p>
+  </div>
+
+  <!-- END (victory/defeat) -->
+  <div class="screen" id="s-end">
+    <div class="result-big" id="e-banner"></div>
+    <p class="small" id="e-sub"></p>
+    <div class="lb" id="e-board"></div>
+    <div class="spacer"></div>
+    <p class="small">THANKS FOR PLAYING!</p>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const screens = ['s-join','s-lobby','s-wait','s-question','s-reveal','s-end'];
+  function show(id) { screens.forEach(s => $(s).classList.toggle('active', s === id)); }
+
+  // Room code comes from the QR URL path (/ABCD) or ?room=ABCD; otherwise ask.
+  const pathCode = location.pathname.replace(/\//g, '').toUpperCase();
+  const qsCode = new URLSearchParams(location.search).get('room');
+  let roomCode = (qsCode || (/^[A-Z]{4}$/.test(pathCode) ? pathCode : '') || '').toUpperCase();
+  if (!roomCode) $('roomrow').style.display = 'block';
+
+  let ws = null, playerId = sessionStorage.getItem('gt_pid') || null;
+  let myName = sessionStorage.getItem('gt_name') || '';
+  let answered = false, currentQ = -1, deadline = 0, timerInt = null;
+  $('name').value = myName;
+
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(proto + '//' + location.host);
+    ws.onopen = () => {
+      if (myName && roomCode) ws.send(JSON.stringify({ type: 'join', room: roomCode, name: myName, playerId }));
+    };
+    ws.onmessage = (ev) => handle(JSON.parse(ev.data));
+    ws.onclose = () => setTimeout(connect, 1500); // auto-reconnect
+  }
+
+  $('btn-join').onclick = () => {
+    myName = $('name').value.trim();
+    if (!roomCode) roomCode = $('room').value.trim().toUpperCase();
+    if (!myName) return $('join-err').textContent = 'ENTER A NAME!';
+    if (!/^[A-Z]{4}$/.test(roomCode)) return $('join-err').textContent = 'ROOM CODE IS 4 LETTERS';
+    sessionStorage.setItem('gt_name', myName);
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'join', room: roomCode, name: myName, playerId }));
+    else connect();
+  };
+
+  function handle(msg) {
+    if (msg.type === 'joined') {
+      playerId = msg.playerId;
+      sessionStorage.setItem('gt_pid', playerId);
+      $('lobby-name').textContent = msg.name;
+      show('s-lobby');
+    } else if (msg.type === 'error') {
+      $('join-err').textContent = msg.error === 'no_such_room' ? 'ROOM NOT FOUND — CHECK THE CODE' : 'ERROR: ' + msg.error;
+      show('s-join');
+    } else if (msg.type === 'kicked') {
+      sessionStorage.removeItem('gt_pid');
+      show('s-join');
+      $('join-err').textContent = 'REMOVED BY HOST';
+    } else if (msg.type === 'state') {
+      applyState(msg.payload || {});
+    }
+  }
+
+  function applyState(st) {
+    switch (st.phase) {
+      case 'lobby': show('s-lobby'); break;
+
+      case 'vs':
+        $('wait-msg').innerHTML = 'NEXT UP:<br><br><span style="color:#ffd24a">' +
+          esc(st.bossName || '???') + '</span><br><br>GET READY!';
+        show('s-wait');
+        break;
+
+      case 'question': {
+        if (st.qId !== currentQ) { currentQ = st.qId; answered = false; }
+        $('q-progress').textContent = 'Q' + st.qNum + '/' + st.qTotal + ' — VS ' + (st.bossName || '');
+        $('q-text').textContent = st.text || '';
+        $('q-locked').style.display = answered ? 'block' : 'none';
+        const optBox = $('q-options'), openBox = $('q-open');
+        optBox.innerHTML = '';
+        if (st.kind === 'mc') {
+          openBox.style.display = 'none';
+          (st.options || []).forEach((opt, i) => {
+            const b = document.createElement('button');
+            b.className = 'opt';
+            b.innerHTML = '<span class="tag">' + 'ABCD'[i] + ')</span><span>' + esc(opt) + '</span>';
+            b.disabled = answered;
+            b.onclick = () => submit(i, b);
+            optBox.appendChild(b);
+          });
+        } else {
+          openBox.style.display = answered ? 'none' : 'block';
+          $('open-answer').value = '';
+        }
+        startTimer(st.deadlineMs || 0);
+        show('s-question');
+        break;
+      }
+
+      case 'locked':
+        stopTimer();
+        $('wait-msg').innerHTML = "TIME'S UP!<br><br>WAITING FOR THE REVEAL...";
+        show('s-wait');
+        break;
+
+      case 'reveal': {
+        stopTimer();
+        const v = $('r-verdict');
+        if (st.you && st.you.answered === false) {
+          v.textContent = 'NO ANSWER!'; v.className = 'result-big wrong';
+        } else if (st.you && st.you.correct) {
+          v.textContent = 'CORRECT!'; v.className = 'result-big right';
+        } else {
+          v.textContent = 'WRONG!'; v.className = 'result-big wrong';
+        }
+        $('r-answer').textContent = st.answerText || '';
+        $('r-fact').textContent = st.fact || '';
+        show('s-reveal');
+        break;
+      }
+
+      case 'ko':
+        $('wait-msg').innerHTML = '<span style="color:#ffd24a;font-size:20px">K.O.!</span><br><br>' +
+          esc(st.bossName || 'THE BOSS') + ' IS DOWN!';
+        show('s-wait');
+        break;
+
+      case 'end': {
+        $('e-banner').textContent = st.victory ? 'VICTORY!' : 'DEFEAT...';
+        $('e-banner').className = 'result-big ' + (st.victory ? 'right' : 'wrong');
+        $('e-sub').textContent = st.teamName ? 'TEAM ' + st.teamName : '';
+        const board = $('e-board');
+        board.innerHTML = '';
+        (st.leaderboard || []).forEach((row, i) => {
+          const div = document.createElement('div');
+          div.textContent = (['\u{1F947}','\u{1F948}','\u{1F949}'][i] || (i + 1) + '.') + ' ' + row.name + ' — ' + row.score;
+          if (row.playerId === playerId) div.className = 'me';
+          board.appendChild(div);
+        });
+        if (st.you && st.you.rank) {
+          const div = document.createElement('div');
+          div.className = 'me';
+          div.style.marginTop = '10px';
+          div.textContent = 'YOU: #' + st.you.rank + ' — ' + st.you.score + ' PTS';
+          board.appendChild(div);
+        }
+        show('s-end');
+        break;
+      }
+    }
+  }
+
+  function submit(answer, btn) {
+    if (answered) return;
+    answered = true;
+    ws.send(JSON.stringify({ type: 'answer', answer }));
+    if (btn) {
+      btn.classList.add('picked');
+      document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+    } else {
+      $('q-open').style.display = 'none';
+    }
+    $('q-locked').style.display = 'block';
+  }
+  $('btn-submit-open').onclick = () => {
+    const t = $('open-answer').value.trim();
+    if (t) submit(t, null);
+  };
+
+  function startTimer(deadlineMs) {
+    stopTimer();
+    deadline = deadlineMs;
+    const el = $('timer');
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      el.textContent = left > 0 ? left : '0';
+      el.classList.toggle('hurry', left <= 5);
+      if (left <= 0) stopTimer();
+    };
+    tick();
+    timerInt = setInterval(tick, 250);
+  }
+  function stopTimer() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  if (roomCode) connect();
+})();
+</script>
+</body>
+</html>
