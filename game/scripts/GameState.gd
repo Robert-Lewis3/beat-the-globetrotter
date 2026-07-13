@@ -9,6 +9,7 @@ const QUESTION_SECONDS := 25
 const HIT_THRESHOLD := 0.5      # fraction correct that counts as "the room got it"
 const BASE_POINTS := 100
 const SPEED_BONUS_MAX := 50
+const HERO_DAMAGE_PER_QUESTION := 25.0   # scaled by the fraction who got it wrong
 
 var server_url := "http://localhost:3000"
 var team_name := "THE OFFICE"
@@ -17,6 +18,7 @@ var boss_index := 0
 var question_index := 0
 var in_overtime := false
 var boss_hp := 100.0            # percent
+var hero_hp := 100.0            # percent; wrong answers chip it, resets each boss
 var combo := 0
 var max_combo := 0
 
@@ -66,6 +68,7 @@ func reset_run() -> void:
 	question_index = 0
 	in_overtime = false
 	boss_hp = 100.0
+	hero_hp = 100.0
 	combo = 0
 	max_combo = 0
 	answers = {}
@@ -78,6 +81,7 @@ func reset_boss_fight() -> void:
 	question_index = 0
 	in_overtime = false
 	boss_hp = 100.0
+	hero_hp = 100.0
 	combo = 0
 	answers = {}
 	collecting = false
@@ -190,9 +194,10 @@ func grade_question() -> Dictionary:
 	if total > 0:
 		fraction = float(correct_count) / float(total)
 
-	# Damage + combo
+	# Damage + combo (wrong answers hurt the room too; floor at 0, no early KO)
 	if not in_overtime:
 		boss_hp = max(0.0, boss_hp - 25.0 * fraction)
+	hero_hp = max(0.0, hero_hp - HERO_DAMAGE_PER_QUESTION * (1.0 - fraction))
 	if fraction >= HIT_THRESHOLD:
 		combo += 1
 		max_combo = max(max_combo, combo)

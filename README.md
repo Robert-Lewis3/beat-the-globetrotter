@@ -13,7 +13,9 @@ Godot game (host screen)  <--WebSocket-->  relay server (Node.js)  <--WebSocket-
 ```
 
 - **Percentage damage**: each question is worth 25% of the boss's HP, scaled by
-  the % of the room that answered correctly.
+  the % of the room that answered correctly. Wrong answers cut both ways — the
+  hero takes up to 25% damage scaled by the % who got it wrong (dramatic only,
+  no early KO; hero HP refills at the start of each boss fight).
 - If the boss still has HP after question 4 → **OVERTIME** sudden-death question
   (majority correct = KO, otherwise DEFEAT with an arcade Continue countdown).
 - **Combo** counts consecutive questions where ≥50% of the room was right.

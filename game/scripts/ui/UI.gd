@@ -36,7 +36,9 @@ static func button(text: String, size: int = 18, color: Color = C_GOLD) -> Butto
 	normal.border_color = color
 	normal.set_border_width_all(3)
 	normal.set_corner_radius_all(8)
-	normal.set_content_margin_all(16)
+	normal.set_content_margin_all(12)
+	normal.content_margin_left = 18
+	normal.content_margin_right = 18
 	b.add_theme_stylebox_override("normal", normal)
 
 	var hover: StyleBoxFlat = normal.duplicate()
@@ -97,8 +99,9 @@ static func center_x(c: Control, y: float, width: float = 1920.0) -> Control:
 		c.alignment = BoxContainer.ALIGNMENT_CENTER
 	return c
 
-## Same, anchored up from the bottom edge.
-static func center_x_bottom(c: Control, y_above_bottom: float, width: float = 1920.0) -> Control:
+## Same, anchored up from the bottom edge. Pass height for containers whose
+## children would otherwise stretch to fill the whole strip (e.g. buttons).
+static func center_x_bottom(c: Control, y_above_bottom: float, width: float = 1920.0, height: float = 0.0) -> Control:
 	c.anchor_left = 0.5
 	c.anchor_right = 0.5
 	c.anchor_top = 1.0
@@ -106,6 +109,8 @@ static func center_x_bottom(c: Control, y_above_bottom: float, width: float = 19
 	c.offset_left = -width / 2.0
 	c.offset_right = width / 2.0
 	c.offset_top = -y_above_bottom
+	if height > 0.0:
+		c.offset_bottom = -y_above_bottom + height
 	if c is BoxContainer:
 		c.alignment = BoxContainer.ALIGNMENT_CENTER
 	return c

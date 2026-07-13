@@ -14,7 +14,9 @@ var boss: Dictionary
 var hero_f: Fighter
 var boss_f: Fighter
 var hp_bar: Control
+var hero_bar: Control
 var display_hp := 100.0
+var display_hero_hp := 100.0
 var combo_label: Label
 var timer_label: Label
 var answered_label: Label
@@ -50,18 +52,17 @@ func _ready() -> void:
 	hero_name.position = Vector2(40, 30)
 	hero_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	add_child(hero_name)
-	var hero_hp := ColorRect.new()
-	hero_hp.color = Questions.HERO_COLOR
-	hero_hp.position = Vector2(40, 66)
-	hero_hp.size = Vector2(560, 26)
-	add_child(hero_hp)
+	display_hero_hp = GameState.hero_hp
+	hero_bar = _make_hp_bar(true)
+	hero_bar.position = Vector2(40, 66)
+	add_child(hero_bar)
 
 	var boss_name := UIKit.label(boss["name"], 18, boss["color"])
 	boss_name.position = Vector2(1320, 30)
 	boss_name.custom_minimum_size = Vector2(560, 0)
 	boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(boss_name)
-	hp_bar = _make_hp_bar()
+	hp_bar = _make_hp_bar(false)
 	hp_bar.position = Vector2(1320, 66)
 	add_child(hp_bar)
 
@@ -112,7 +113,7 @@ func _ready() -> void:
 	# ---- host dock
 	var dock := HBoxContainer.new()
 	dock.add_theme_constant_override("separation", 24)
-	add_child(UIKit.center_x_bottom(dock, 150))
+	add_child(UIKit.center_x_bottom(dock, 150, 1920.0, 62.0))
 	status_label = UIKit.label("", 13, UIKit.C_MUTED)
 	add_child(UIKit.center_x_bottom(status_label, 44))
 
@@ -230,6 +231,7 @@ func _reveal() -> void:
 		Sfx.play("wrong")
 	_pop_hype(_hype_text(last_fraction), UIKit.C_GOLD if got_it else UIKit.C_RED)
 	_tween_hp(GameState.boss_hp)
+	_tween_hero_hp(GameState.hero_hp)
 	_update_combo()
 
 	status_label.text = "READ THE FUN FACT, THEN NEXT"
@@ -275,7 +277,7 @@ func _ko_sequence() -> void:
 	var sub := UIKit.label("FLAWLESS VICTORY!" if flawless else boss["name"] + " GOES DOWN!", 22, UIKit.C_GOLD)
 	ko_layer.add_child(UIKit.center_x(sub, 640))
 	var cont_row := HBoxContainer.new()
-	ko_layer.add_child(UIKit.center_x_bottom(cont_row, 160))
+	ko_layer.add_child(UIKit.center_x_bottom(cont_row, 160, 1920.0, 62.0))
 	var cont := UIKit.button("CONTINUE ▸", 22)
 	cont.pressed.connect(_continue_after_ko)
 	cont_row.add_child(cont)
@@ -360,7 +362,7 @@ func _make_option(letter: String, text: String) -> PanelContainer:
 	p.add_child(l)
 	return p
 
-func _make_hp_bar() -> Control:
+func _make_hp_bar(for_hero: bool) -> Control:
 	var bar := Control.new()
 	bar.custom_minimum_size = Vector2(560, 26)
 	bar.size = Vector2(560, 26)
@@ -368,9 +370,14 @@ func _make_hp_bar() -> Control:
 		var w := 560.0
 		var h := 26.0
 		bar.draw_rect(Rect2(0, 0, w, h), Color(0.1, 0.1, 0.2))
-		var frac: float = clamp(display_hp / 100.0, 0.0, 1.0)
-		var col: Color = boss["color"] if frac > 0.3 else UIKit.C_RED
-		bar.draw_rect(Rect2(w * (1.0 - frac), 0, w * frac, h), col)   # drains leftward
+		var hp: float = display_hero_hp if for_hero else display_hp
+		var frac: float = clamp(hp / 100.0, 0.0, 1.0)
+		var base: Color = Questions.HERO_COLOR if for_hero else boss["color"]
+		var col: Color = base if frac > 0.3 else UIKit.C_RED
+		if for_hero:
+			bar.draw_rect(Rect2(0, 0, w * frac, h), col)                  # drains from the right
+		else:
+			bar.draw_rect(Rect2(w * (1.0 - frac), 0, w * frac, h), col)   # drains from the left
 		for i in range(1, 4):
 			bar.draw_rect(Rect2(w * i / 4.0 - 1, 0, 2, h), Color(0, 0, 0, 0.6))
 		bar.draw_rect(Rect2(0, 0, w, h), Color.WHITE, false, 2.0))
@@ -379,6 +386,10 @@ func _make_hp_bar() -> Control:
 func _tween_hp(target: float) -> void:
 	var t := create_tween()
 	t.tween_method(func(v): display_hp = v; hp_bar.queue_redraw(), display_hp, target, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+func _tween_hero_hp(target: float) -> void:
+	var t := create_tween()
+	t.tween_method(func(v): display_hero_hp = v; hero_bar.queue_redraw(), display_hero_hp, target, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func _update_combo() -> void:
 	combo_label.text = "COMBO x%d" % GameState.combo if GameState.combo > 0 else ""

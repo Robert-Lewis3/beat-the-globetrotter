@@ -56,7 +56,7 @@ func _ready() -> void:
 	fight_btn.pressed.connect(_fight)
 	var btn_row := HBoxContainer.new()
 	btn_row.add_child(fight_btn)
-	add_child(UIKit.center_x_bottom(btn_row, 140))
+	add_child(UIKit.center_x_bottom(btn_row, 140, 1920.0, 70.0))
 
 	await get_tree().process_frame   # let layout settle so the pivot is centered
 	vs.pivot_offset = vs.size / 2.0
