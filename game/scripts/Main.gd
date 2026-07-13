@@ -15,10 +15,39 @@ const SCREENS := {
 }
 
 var current: Control = null
+var _quit_armed := false
+var _quit_hint: Label = null
 
 func _ready() -> void:
 	I = self
 	goto("title")
+
+## Esc twice within 2s quits (single press is easy to hit mid-game);
+## F11 toggles fullscreen for projector use.
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE:
+			if _quit_armed:
+				get_tree().quit()
+			_quit_armed = true
+			_show_quit_hint()
+			get_tree().create_timer(2.0).timeout.connect(func():
+				_quit_armed = false
+				if _quit_hint:
+					_quit_hint.queue_free()
+					_quit_hint = null)
+		elif event.keycode == KEY_F11:
+			var mode := DisplayServer.window_get_mode()
+			if mode == DisplayServer.WINDOW_MODE_FULLSCREEN:
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			else:
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+func _show_quit_hint() -> void:
+	if _quit_hint:
+		return
+	_quit_hint = UIKit.label("PRESS ESC AGAIN TO QUIT", 14, UIKit.C_RED)
+	add_child(UIKit.center_x(_quit_hint, 12))
 
 static func goto(screen: String) -> void:
 	I._goto(screen)
