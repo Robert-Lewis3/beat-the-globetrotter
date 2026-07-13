@@ -31,6 +31,10 @@ func _ready() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load("res://server_config.cfg") == OK:
 		server_url = str(cfg.get_value("server", "url", server_url))
+	# test harness override so E2E runs never depend on the live config
+	var env_url := OS.get_environment("GT_SERVER_URL")
+	if env_url != "":
+		server_url = env_url
 	Net.player_joined.connect(_on_player_joined)
 	Net.player_left.connect(_on_player_left)
 	Net.player_answer.connect(_on_player_answer)
@@ -80,6 +84,10 @@ func reset_boss_fight() -> void:
 
 func current_boss() -> Dictionary:
 	return Questions.BOSSES[boss_index]
+
+## Bosses get physically bigger each round: 10x, 12.5x, 15x pixel scale.
+func boss_pixel_scale() -> float:
+	return 10.0 + 2.5 * boss_index
 
 func current_question() -> Dictionary:
 	var boss := current_boss()

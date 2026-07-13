@@ -3,24 +3,26 @@ extends Node2D
 ## A pixel fighter: Kenney 16x16 sprite scaled up, with a colored glow outline
 ## and tween animations (idle bob, lunge, hit flash, KO fall, victory hop).
 
-const PIXEL_SCALE := 11.0
+const PIXEL_SCALE := 11.0       # default; bosses pass bigger values per round
 
 var sprite: Sprite2D
 var glow_color: Color
 var facing := 1                 # 1 = faces right (hero), -1 = faces left (boss)
+var px := PIXEL_SCALE
 var _home := Vector2.ZERO
 var _bob: Tween
 
-func _init(texture_path: String, color: Color, face_right: bool) -> void:
+func _init(texture_path: String, color: Color, face_right: bool, pixel_scale: float = PIXEL_SCALE) -> void:
 	glow_color = color
 	facing = 1 if face_right else -1
+	px = pixel_scale
 	var tex: Texture2D = load(texture_path)
 
 	# glow: four offset copies behind the sprite
 	for offset in [Vector2(4, 0), Vector2(-4, 0), Vector2(0, 4), Vector2(0, -4)]:
 		var g := Sprite2D.new()
 		g.texture = tex
-		g.scale = Vector2(PIXEL_SCALE, PIXEL_SCALE)
+		g.scale = Vector2(px, px)
 		g.position = offset * 1.2
 		g.modulate = Color(color.r, color.g, color.b, 0.45)
 		g.flip_h = not face_right
@@ -28,9 +30,14 @@ func _init(texture_path: String, color: Color, face_right: bool) -> void:
 
 	sprite = Sprite2D.new()
 	sprite.texture = tex
-	sprite.scale = Vector2(PIXEL_SCALE, PIXEL_SCALE)
+	sprite.scale = Vector2(px, px)
 	sprite.flip_h = not face_right
 	add_child(sprite)
+
+## Half the rendered sprite height — used to keep feet on the same floor
+## line regardless of scale.
+func half_height() -> float:
+	return 8.0 * px
 
 func _ready() -> void:
 	_home = position

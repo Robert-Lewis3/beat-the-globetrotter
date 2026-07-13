@@ -43,6 +43,7 @@ function makePlayer(i) {
   ws.on('message', (raw) => {
     const msg = JSON.parse(raw.toString());
     if (msg.type === 'joined') console.log(`[bot${i + 1}] joined as ${msg.name}`);
+    if (msg.type === 'error') { console.error(`[bot${i + 1}] SERVER ERROR: ${msg.error}`); process.exit(1); }
     if (msg.type !== 'state') return;
     const st = msg.payload || {};
     if (st.phase === 'question' && st.qId !== lastQ) {

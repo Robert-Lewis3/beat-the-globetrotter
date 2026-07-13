@@ -21,12 +21,12 @@ func _ready() -> void:
 			color = UIKit.C_GOLD
 		pips.add_child(UIKit.label("BOSS %d %s" % [i + 1, mark], 14, color))
 
-	# fighters
+	# fighters (feet aligned on the same floor line)
 	var hero := Fighter.new(Questions.HERO_SPRITE, Questions.HERO_COLOR, true)
 	hero.position = Vector2(480, 560)
 	add_child(hero)
-	var boss_f := Fighter.new(boss["sprite"], boss["color"], false)
-	boss_f.position = Vector2(1440, 560)
+	var boss_f := Fighter.new(boss["sprite"], boss["color"], false, GameState.boss_pixel_scale())
+	boss_f.position = Vector2(1440, 560 + hero.half_height() - boss_f.half_height())
 	add_child(boss_f)
 
 	# names

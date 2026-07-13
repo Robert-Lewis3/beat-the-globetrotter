@@ -1,6 +1,7 @@
 class_name Arena
 extends Control
-## Fully coded arena backgrounds matching the handoff briefs:
+## Fully coded arena backgrounds:
+##   "desert"    — western high noon: warm sand gradient, mesas, saguaro cacti
 ##   "airport"   — sunrise tarmac: dawn gradient, runway lights, control tower
 ##   "temple"    — mountain temple at dusk: purple-to-rose, mountains, pagoda
 ##   "worldtour" — night stage: starry navy-to-violet, globe motif, skyline
@@ -22,6 +23,30 @@ func _draw() -> void:
 	var w := size.x
 	var h := size.y
 	match theme_name:
+		"desert":
+			# warm desert sky: dusty rose to hot sand-orange
+			_gradient(Color(0.42, 0.16, 0.24), Color(1.0, 0.64, 0.30))
+			# blazing sun with a haze ring
+			draw_circle(Vector2(w * 0.5, h * 0.34), 130, Color(1.0, 0.92, 0.60, 0.25))
+			draw_circle(Vector2(w * 0.5, h * 0.34), 95, Color(1.0, 0.88, 0.52, 0.95))
+			var far := Color(0.30, 0.12, 0.20)   # distant mesas
+			var near := Color(0.16, 0.07, 0.12)  # foreground silhouettes
+			# flat-topped mesas on the horizon
+			_mesa(w * 0.02, h * 0.78, w * 0.24, h * 0.20, far)
+			_mesa(w * 0.60, h * 0.78, w * 0.34, h * 0.26, far)
+			_mesa(w * 0.38, h * 0.78, w * 0.14, h * 0.12, far)
+			# sandy ground
+			draw_rect(Rect2(0, h * 0.78, w, h * 0.22), Color(0.55, 0.26, 0.18))
+			draw_rect(Rect2(0, h * 0.86, w, h * 0.14), near)
+			# saguaro cacti, tall to small
+			_cactus(w * 0.10, h * 0.86, 190, near)
+			_cactus(w * 0.86, h * 0.86, 230, near)
+			_cactus(w * 0.68, h * 0.84, 110, far)
+			_cactus(w * 0.30, h * 0.83, 80, far)
+			# scattered desert scrub
+			for i in range(7):
+				var sx := w * (0.06 + 0.14 * i)
+				draw_circle(Vector2(sx, h * 0.885), 9, Color(0.10, 0.05, 0.08))
 		"airport":
 			_gradient(Color(0.16, 0.10, 0.29), Color(1.0, 0.60, 0.29))
 			# sun
@@ -108,6 +133,34 @@ func _draw_stars() -> void:
 
 func _triangle(a: Vector2, b: Vector2, c: Vector2, color: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([a, b, c]), color)
+
+## Flat-topped mesa: trapezoid sitting on base_y.
+func _mesa(x: float, base_y: float, mw: float, mh: float, color: Color) -> void:
+	var slope := mw * 0.14
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(x, base_y),
+		Vector2(x + slope, base_y - mh),
+		Vector2(x + mw - slope, base_y - mh),
+		Vector2(x + mw, base_y),
+	]), color)
+
+## Saguaro cactus silhouette: trunk plus two upturned arms.
+func _cactus(x: float, base_y: float, ch: float, color: Color) -> void:
+	var tw := ch * 0.22
+	draw_rect(Rect2(x - tw / 2, base_y - ch, tw, ch), color)
+	# rounded top
+	draw_circle(Vector2(x, base_y - ch), tw / 2, color)
+	var aw := tw * 0.8
+	# left arm: out at 45% height, then up
+	var ly := base_y - ch * 0.45
+	draw_rect(Rect2(x - tw / 2 - aw * 1.6, ly - aw, aw * 1.6, aw), color)
+	draw_rect(Rect2(x - tw / 2 - aw * 1.6, ly - aw - ch * 0.22, aw, ch * 0.22 + aw), color)
+	draw_circle(Vector2(x - tw / 2 - aw * 1.1, ly - aw - ch * 0.22), aw / 2, color)
+	# right arm: out at 60% height, then up
+	var ry := base_y - ch * 0.60
+	draw_rect(Rect2(x + tw / 2, ry - aw, aw * 1.4, aw), color)
+	draw_rect(Rect2(x + tw / 2 + aw * 0.4, ry - aw - ch * 0.16, aw, ch * 0.16 + aw), color)
+	draw_circle(Vector2(x + tw / 2 + aw * 0.9, ry - aw - ch * 0.16), aw / 2, color)
 
 func _ellipse_arc(c: Vector2, rx: float, ry: float, color: Color) -> void:
 	var pts := PackedVector2Array()

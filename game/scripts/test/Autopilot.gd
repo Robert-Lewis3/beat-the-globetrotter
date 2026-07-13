@@ -78,6 +78,7 @@ func _battle_tick(s: Control) -> void:
 	match s.phase:
 		s.Phase.IDLE:
 			_open_since = Time.get_ticks_msec() / 1000.0
+			print("AUTOPILOT: show question (players=", GameState.connected_count(), ")")
 			s._show_question()
 		s.Phase.OPEN:
 			# players answer on their own; force the lock if they stall

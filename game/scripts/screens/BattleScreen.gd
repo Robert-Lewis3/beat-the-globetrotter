@@ -37,12 +37,12 @@ func _ready() -> void:
 	boss = GameState.current_boss()
 	add_child(Arena.new(boss["arena"]))
 
-	# ---- fighters (low, flanking the question panel)
+	# ---- fighters (low, flanking the question panel, feet aligned)
 	hero_f = Fighter.new(Questions.HERO_SPRITE, Questions.HERO_COLOR, true)
 	hero_f.position = Vector2(190, 700)
 	add_child(hero_f)
-	boss_f = Fighter.new(boss["sprite"], boss["color"], false)
-	boss_f.position = Vector2(1730, 700)
+	boss_f = Fighter.new(boss["sprite"], boss["color"], false, GameState.boss_pixel_scale())
+	boss_f.position = Vector2(1730, 700 + hero_f.half_height() - boss_f.half_height())
 	add_child(boss_f)
 
 	# ---- top bars
@@ -132,7 +132,7 @@ func _ready() -> void:
 	# ---- hype popup
 	hype_label = UIKit.label("", 64, UIKit.C_GOLD)
 	hype_label.modulate.a = 0.0
-	add_child(UIKit.center_x(hype_label, 470))
+	add_child(UIKit.center_x(hype_label, 600))
 
 	GameState.answer_received.connect(_on_answer_received)
 	_enter_idle()

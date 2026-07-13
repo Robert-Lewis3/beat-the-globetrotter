@@ -15,13 +15,13 @@ const HERO_COLOR := Color(0.29, 0.89, 1.0) # cyan / electric blue
 
 const BOSSES := [
 	{
-		"name": "TOURI",
-		"title": "THE NOVICE WANDERER",
-		"taunt": "Still figuring out which way is customs",
+		"name": "SARAH",
+		"title": "THE LOWLY ANALYTICS MANAGER",
+		"taunt": "Still figuring out how to use Excel",
 		"sprite": "res://assets/sprites/tile_0085.png",
 		"color": Color(1.0, 0.62, 0.19),       # warm orange
 		"color2": Color(1.0, 0.82, 0.29),      # gold
-		"arena": "airport",
+		"arena": "desert",
 		"questions": [
 			{
 				"kind": "mc",
@@ -65,9 +65,9 @@ const BOSSES := [
 		},
 	},
 	{
-		"name": "ROAM",
-		"title": "THE SEASONED BACKPACKER",
-		"taunt": "Has opinions about your itinerary",
+		"name": "KING CHINGUN",
+		"title": "MASTER OF CROSSTABS",
+		"taunt": "Has opinions about your weighting plan",
 		"sprite": "res://assets/sprites/tile_0112.png",
 		"color": Color(0.36, 0.78, 0.55),      # mossy green
 		"color2": Color(0.29, 0.85, 0.80),     # teal
@@ -114,9 +114,9 @@ const BOSSES := [
 		},
 	},
 	{
-		"name": "UMBERTO",
-		"title": "THE GLOBETROTTER",
-		"taunt": "Claims he's been everywhere, done everything",
+		"name": "ASHLEY",
+		"title": "BURRITO SUPREME LEADER",
+		"taunt": "Making sure you've sent your milestones and accomplishments",
 		"sprite": "res://assets/sprites/tile_0084.png",
 		"color": Color(0.62, 0.36, 0.95),      # deep purple
 		"color2": Color(1.0, 0.82, 0.29),      # gold
