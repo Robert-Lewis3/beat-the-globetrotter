@@ -17,7 +17,7 @@ const BOSSES := [
 	{
 		"name": "SARAH",
 		"title": "THE LOWLY ANALYTICS MANAGER",
-		"taunt": "Still figuring out how to use Excel",
+		"taunt": "Still trying to figure out how Excel works",
 		"sprite": "res://assets/sprites/tile_0085.png",
 		"color": Color(1.0, 0.62, 0.19),       # warm orange
 		"color2": Color(1.0, 0.82, 0.29),      # gold
@@ -41,10 +41,10 @@ const BOSSES := [
 			},
 			{
 				"kind": "open",
-				"text": "Name the ancient Roman amphitheater famous for gladiator contests.",
-				"accepted": ["colosseum", "coliseum", "colloseum", "coloseum"],
-				"answer_text": "The Colosseum",
-				"fact": "Completed around 80 AD, it held up to 80,000 spectators.",
+				"text": "The Leaning Tower is in which Italian city?",
+				"accepted": ["pisa", "piza"],
+				"answer_text": "Pisa",
+				"fact": "It started leaning during construction in the 1170s — and never stopped.",
 			},
 			{
 				"kind": "mc",
@@ -147,18 +147,18 @@ const BOSSES := [
 			},
 			{
 				"kind": "open",
-				"text": "What is the tallest building in the world, and which city is it in?",
-				"accepted": ["burj", "khalifa", "dubai"],
-				"answer_text": "Burj Khalifa, in Dubai",
-				"fact": "828 meters (2,717 ft) tall, completed in 2010.",
+				"text": "Which country drinks the most coffee per person in the world?",
+				"accepted": ["finland", "finnland"],
+				"answer_text": "Finland",
+				"fact": "Finns average about 4 cups a day — roughly 26 pounds of coffee per person a year.",
 			},
 		],
 		"overtime": {
 			"kind": "open",
-			"text": "OVERTIME! Name the smallest country in the world, located entirely within the city of Rome.",
-			"accepted": ["vatican"],
-			"answer_text": "Vatican City",
-			"fact": "Just 0.17 square miles.",
+			"text": "OVERTIME! Which country has the longest total coastline in the world?",
+			"accepted": ["canada", "canda", "cannada"],
+			"answer_text": "Canada",
+			"fact": "About 151,000 miles of it — enough to circle the Earth six times.",
 		},
 	},
 ]

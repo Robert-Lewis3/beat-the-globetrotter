@@ -16,7 +16,7 @@ if (!room) { console.error('usage: node test/simulate.js ROOMCODE [count] [corre
 const KEY = [
   ['Great Wall', 'China'],
   ['Eurozone', 'Euro'],
-  ['amphitheater', 'the colosseum'],
+  ['Leaning Tower', 'Pisa'],
   ['single country', 'Australia'],
   ['Christ the Redeemer', 'Rio de Janeiro'],
   ['Petra', 'Jordan'],
@@ -25,10 +25,10 @@ const KEY = [
   ['most-visited', 'France'],
   ['nonstop', 'Singapore'],
   ['Royal Caribbean', 'Cruise ships'],
-  ['tallest building', 'Burj Khalifa, Dubai'],
+  ['coffee', 'Finland'],
   ['ocean', 'Pacific'],
   ['Everest', 'China'],
-  ['smallest country', 'vatican city'],
+  ['coastline', 'canada, obviously'],
 ];
 
 const WRONG_OPEN = 'the moon';
