@@ -41,6 +41,23 @@ Godot game (host screen)  <--WebSocket-->  relay server (Node.js)  <--WebSocket-
 5. **Free-tier note**: the service sleeps after ~15 min idle. Open its URL in a
    browser a minute or two before game night to wake it up.
 
+## Graphics layer
+
+Visual polish lives entirely outside the game logic, so it can be tuned or
+removed without touching the question flow or networking:
+
+- [shaders/crt.gdshader](game/shaders/crt.gdshader) — arcade tube look: scanlines,
+  curvature, vignette, channel fringing, bloom. Tune the `uniform` defaults at the
+  top of the file. It's applied by [CRT.gd](game/scripts/ui/CRT.gd) on a canvas
+  layer above everything, and is **off on the Lobby screen on purpose** — curvature
+  and scanlines over a QR code can stop phone cameras reading it. A screen opts out
+  with `var crt_enabled := false`.
+- [Fx.gd](game/scripts/ui/Fx.gd) — impact sparks, dust puffs, screen flash, screen shake.
+- [ArenaFx.gd](game/scripts/ui/ArenaFx.gd) — blowing sand, temple mist, twinkling
+  stars, turning globe. The static background in `Arena.gd` is still drawn once.
+
+Measured ~60 fps on integrated Intel graphics at 1920x1080.
+
 ## Changing the questions
 
 Everything lives in [game/scripts/Questions.gd](game/scripts/Questions.gd) —

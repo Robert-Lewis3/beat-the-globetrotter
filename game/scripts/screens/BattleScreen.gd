@@ -21,6 +21,7 @@ var combo_label: Label
 var timer_label: Label
 var answered_label: Label
 var status_label: Label
+var q_panel: PanelContainer
 var q_header: Label
 var q_label: Label
 var options_grid: GridContainer
@@ -38,6 +39,7 @@ var _last_tick := -1
 func _ready() -> void:
 	boss = GameState.current_boss()
 	add_child(Arena.new(boss["arena"]))
+	add_child(ArenaFx.new(boss["arena"]))
 
 	# ---- fighters (low, flanking the question panel, feet aligned)
 	hero_f = Fighter.new(Questions.HERO_SPRITE, Questions.HERO_COLOR, true)
@@ -83,6 +85,7 @@ func _ready() -> void:
 	panel.position = Vector2(400, 150)
 	panel.custom_minimum_size = Vector2(1120, 620)
 	add_child(panel)
+	q_panel = panel
 	var pv := VBoxContainer.new()
 	pv.add_theme_constant_override("separation", 20)
 	panel.add_child(pv)
@@ -223,12 +226,16 @@ func _reveal() -> void:
 		hero_f.lunge()
 		boss_f.hit()
 		Sfx.play("hit")
+		Fx.dust(self, hero_f.feet_position(), hero_f.facing)
+		_impact(boss_f, boss["color2"], last_fraction)
 		if GameState.combo >= 2:
 			Sfx.play("combo", -6.0)
 	else:
 		boss_f.lunge()
 		hero_f.hit()
 		Sfx.play("wrong")
+		Fx.dust(self, boss_f.feet_position(), boss_f.facing)
+		_impact(hero_f, UIKit.C_RED, 1.0 - last_fraction)
 	_pop_hype(_hype_text(last_fraction), UIKit.C_GOLD if got_it else UIKit.C_RED)
 	_tween_hp(GameState.boss_hp)
 	_tween_hero_hp(GameState.hero_hp)
@@ -252,22 +259,39 @@ func _next() -> void:
 		"defeat":
 			Main.goto("defeat")
 
+## Sparks on the struck fighter, plus shake and flash scaled to how hard
+## the blow landed.
+func _impact(target: Fighter, color: Color, severity: float) -> void:
+	var strength: float = clamp(severity, 0.25, 1.0)
+	Fx.sparks(self, target.global_position, color,
+		int(20 + 26 * strength), 460.0 + 320.0 * strength)
+	Fx.flash(self, color, 0.10 + 0.13 * strength)
+	Fx.shake(self, 10.0 + 16.0 * strength)
+
 func _ko_sequence() -> void:
 	phase = Phase.KO
 	GameState.broadcast_ko()
 	boss_f.ko_fall()
 	hero_f.victory_hop()
 	Sfx.play("ko")
+	Fx.sparks(self, boss_f.global_position, boss["color2"], 70, 900.0)
+	Fx.flash(self, Color.WHITE, 0.5, 0.45)
+	Fx.shake(self, 34.0, 0.6)
 	_tween_hp(0.0)
 	_buttons(false, false, false, false)
 	status_label.text = ""
+
+	# clear the stage for the KO banner: sink the question panel back
+	var fade := create_tween()
+	fade.tween_property(q_panel, "modulate:a", 0.12, 0.3)
 
 	ko_layer = Control.new()
 	ko_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(ko_layer)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.45)
+	dim.color = Color(0, 0, 0, 0.55)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ko_layer.add_child(dim)
 	var ko := UIKit.label("K.O.!", 200, UIKit.C_RED)
 	ko.scale = Vector2(5, 5)

@@ -64,6 +64,26 @@ func lunge() -> void:
 	t.tween_property(self, "position:x", _home.x, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	t.tween_callback(start_idle)
 
+	# afterimages: snapshot the sprite mid-lunge and let each copy fade
+	var ghosts := create_tween()
+	for i in range(3):
+		ghosts.tween_interval(0.05)
+		ghosts.tween_callback(_spawn_ghost)
+
+## A single translucent copy left behind at the current position.
+func _spawn_ghost() -> void:
+	var g := Sprite2D.new()
+	g.top_level = true              # keep it where it was born, not glued to us
+	g.texture = sprite.texture
+	g.scale = sprite.scale
+	g.flip_h = sprite.flip_h
+	g.modulate = Color(glow_color.r, glow_color.g, glow_color.b, 0.5)
+	add_child(g)
+	g.global_position = global_position
+	var t := create_tween()
+	t.tween_property(g, "modulate:a", 0.0, 0.28)
+	t.tween_callback(g.queue_free)
+
 ## Take a hit: white flash + shake.
 func hit() -> void:
 	stop_idle()
@@ -76,6 +96,10 @@ func hit() -> void:
 		shake.tween_property(self, "position:x", _home.x + (14.0 if i % 2 == 0 else -14.0), 0.05)
 	shake.tween_property(self, "position:x", _home.x, 0.05)
 	shake.tween_callback(start_idle)
+
+## World-space point at this fighter's feet, for dust puffs.
+func feet_position() -> Vector2:
+	return global_position + Vector2(0, half_height())
 
 ## KO: fall over and fade.
 func ko_fall() -> void:

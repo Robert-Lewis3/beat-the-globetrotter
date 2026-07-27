@@ -36,14 +36,26 @@ func _tick() -> void:
 	var screen: String = path.get_file().get_basename()
 	if screen != _last_screen:
 		_last_screen = screen
-		print("AUTOPILOT: screen=", screen)
+		print("AUTOPILOT: screen=", screen, " fps=", Engine.get_frames_per_second())
 		if shots_dir != "" and not _shot_taken.has(screen):
 			_shot(screen)
 			return    # act on the next tick, after the screenshot
 
 	match screen:
 		"TitleScreen":
-			s._start()
+			# GT_CLICK_TEST drives the button with a real synthesized mouse
+			# click instead of calling the handler, which proves the
+			# full-screen CRT layer above it doesn't swallow input.
+			if OS.get_environment("GT_CLICK_TEST") == "1":
+				var btn := _find_button(s)
+				if btn == null:
+					printerr("AUTOPILOT: no button found on title screen")
+					get_tree().quit(1)
+					return
+				print("AUTOPILOT: synthesizing click on '", btn.text, "'")
+				_click(btn)
+			else:
+				s._start()
 		"LobbyScreen":
 			if Net.room_code != "" and GameState.connected_count() >= 4 and not _started:
 				_started = true
@@ -78,7 +90,8 @@ func _battle_tick(s: Control) -> void:
 	match s.phase:
 		s.Phase.IDLE:
 			_open_since = Time.get_ticks_msec() / 1000.0
-			print("AUTOPILOT: show question (players=", GameState.connected_count(), ")")
+			print("AUTOPILOT: show question (players=", GameState.connected_count(),
+				") fps=", Engine.get_frames_per_second())
 			s._show_question()
 		s.Phase.OPEN:
 			# players answer on their own; force the lock if they stall
@@ -102,6 +115,26 @@ func _battle_tick(s: Control) -> void:
 				_shot("BattleScreen_ko")
 				return
 			s._continue_after_ko()
+
+func _find_button(n: Node) -> Button:
+	for c in n.get_children():
+		if c is Button:
+			return c
+		var found := _find_button(c)
+		if found != null:
+			return found
+	return null
+
+## Press a button by sending real mouse events at its on-screen centre.
+func _click(btn: Button) -> void:
+	var at := btn.get_global_rect().get_center()
+	for pressed in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = pressed
+		ev.position = at
+		ev.global_position = at
+		Input.parse_input_event(ev)
 
 ## Save a screenshot once per unique key (skipped in headless / when unset).
 func _shot(key: String) -> void:

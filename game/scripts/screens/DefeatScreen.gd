@@ -9,6 +9,7 @@ var timer: Timer
 func _ready() -> void:
 	var boss: Dictionary = GameState.current_boss()
 	add_child(Arena.new(boss["arena"]))
+	add_child(ArenaFx.new(boss["arena"]))
 
 	var dim := ColorRect.new()
 	dim.color = Color(0.15, 0, 0, 0.6)

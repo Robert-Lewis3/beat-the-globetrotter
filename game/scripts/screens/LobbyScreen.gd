@@ -1,6 +1,11 @@
 extends Control
 ## Lobby: connects to the relay, shows the QR code + room code, lists players
 ## as they join, and starts the game.
+##
+## The CRT filter is off here on purpose: curvature and scanlines over a QR
+## code can stop phone cameras from reading it.
+
+var crt_enabled := false
 
 var status_label: Label
 var code_label: Label

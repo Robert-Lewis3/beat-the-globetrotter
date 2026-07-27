@@ -15,11 +15,14 @@ const SCREENS := {
 }
 
 var current: Control = null
+var crt: CRT = null
 var _quit_armed := false
 var _quit_hint: Label = null
 
 func _ready() -> void:
 	I = self
+	crt = CRT.new()
+	add_child(crt)
 	goto("title")
 
 ## Esc twice within 2s quits (single press is easy to hit mid-game);
@@ -60,3 +63,8 @@ func _goto(screen: String) -> void:
 	s.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(s)
 	current = s
+	# keep the CRT layer on top of the freshly added screen
+	move_child(crt, get_child_count() - 1)
+	# screens opt out of the CRT filter by declaring `var crt_enabled := false`
+	var wants = s.get("crt_enabled")
+	crt.set_active(wants == null or bool(wants))

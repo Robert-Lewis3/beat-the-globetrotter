@@ -5,6 +5,7 @@ var team_input: LineEdit
 
 func _ready() -> void:
 	add_child(Arena.new("title"))
+	add_child(ArenaFx.new("title"))
 
 	var box := VBoxContainer.new()
 	box.set_anchors_preset(Control.PRESET_FULL_RECT)

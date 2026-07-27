@@ -6,6 +6,7 @@ var fight_btn: Button
 func _ready() -> void:
 	var boss: Dictionary = GameState.current_boss()
 	add_child(Arena.new(boss["arena"]))
+	add_child(ArenaFx.new(boss["arena"]))
 	GameState.broadcast_vs()
 
 	# boss progress pips

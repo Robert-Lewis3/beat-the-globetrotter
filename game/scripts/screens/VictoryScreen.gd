@@ -3,6 +3,7 @@ extends Control
 
 func _ready() -> void:
 	add_child(Arena.new("worldtour"))
+	add_child(ArenaFx.new("worldtour"))
 	GameState.broadcast_end(true)
 	Sfx.play("victory")
 
